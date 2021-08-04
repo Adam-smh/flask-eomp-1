@@ -96,6 +96,11 @@ def registration():
         username = request.form['username']
         password = request.form['password']
 
+        if not first_name or not last_name or not username or not password:
+            response['message'] = 'One or more entries are empty'
+            response['status_code'] = 400
+            return response
+
         with sqlite3.connect("pointOfSale.db") as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO user("
@@ -104,8 +109,9 @@ def registration():
                            "username,"
                            "password) VALUES(?, ?, ?, ?)", (first_name, last_name, username, password))
             conn.commit()
-            response["message"] = "success"
-            response["status_code"] = 201
+
+        response["message"] = "success"
+        response["status_code"] = 201
         return response
 
 
@@ -120,6 +126,11 @@ def add_product():
         product_category = request.form['product_category']
         product_description = request.form['product_description']
         product_price = request.form['product_price']
+
+        if not product_name or not product_category or not product_description or not product_price:
+            response['message'] = 'One or more entries are empty'
+            response['status_code'] = 400
+            return response
 
         with sqlite3.connect('pointOfSale.db') as conn:
             cursor = conn.cursor()
@@ -207,6 +218,11 @@ def edit_product(product_id):
                 response['status_code'] = 200
 
         if incoming_data.get('product_price'):
+            if not incoming_data.get('product_price'):
+                response['message'] = 'One or more entries are empty'
+                response['status_code'] = 400
+                return response
+
             put_data['product_price'] = incoming_data.get('product_price')
             with sqlite3.connect('pointOfSale.db') as conn:
                 cursor = conn.cursor()
