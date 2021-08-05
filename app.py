@@ -14,6 +14,96 @@ class User(object):
         self.password = password
 
 
+class Product(object):
+    def __init__(self, user_id, product_name, product_category, product_description, product_price):
+        self.user_id = user_id
+        self.product_name = product_name
+        self.product_category = product_category
+        self.product_description = product_description
+        self.product_price = product_price
+
+
+class Database(object):
+    def __init__(self):
+        self.conn = sqlite3.connect('pointOfSale.db')
+        self.cursor = self.conn.cursor()
+
+    def registration(self, first_name, last_name, username, password):
+        self.cursor.execute("INSERT INTO user("
+                            "first_name,"
+                            "last_name,"
+                            "username,"
+                            "password) VALUES(?, ?, ?, ?)", (first_name, last_name, username, password))
+        self.conn.commit()
+
+    def add_product(self, user_id, product_name, product_category, product_description, product_price):
+        self.cursor.execute("INSERT INTO product (user_id, product_name, product_category, product_description, "
+                            "product_price) VALUES (?, ?, ?, ?, ?)", (user_id, product_name, product_category,
+                                                                      product_description, product_price))
+        self.conn.commit()
+
+    def get_products(self):
+        self.cursor.execute("SELECT * FROM product")
+        return self.cursor.fetchall()
+
+    def view_product(self, product_id):
+        self.cursor.execute('SELECT * FROM product WHERE product_id={}'.format(product_id))
+        return self.cursor.fetchone()
+
+    def edit_product(self, product_data, product_id):
+        response = {}
+        put_data = {}
+
+        if product_data.get('product_name'):
+            put_data['product_name'] = product_data.get('product_name')
+            with sqlite3.connect('pointOfSale.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE product SET product_name=? WHERE product_id=?", (put_data["product_name"],
+                                                                                        product_id))
+                conn.commit()
+                response['message'] = "Update was successful"
+                response['status_code'] = 200
+
+        if product_data.get('product_category'):
+            put_data['product_category'] = product_data.get('product_category')
+            with sqlite3.connect('pointOfSale.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE product SET product_category=? WHERE product_id=?",
+                               (put_data["product_category"], product_id))
+                conn.commit()
+                response['message'] = "Update was successful"
+                response['status_code'] = 200
+
+        if product_data.get('product_description'):
+            put_data['product_description'] = product_data.get('product_description')
+            with sqlite3.connect('pointOfSale.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE product SET product_description=? WHERE product_id=?",
+                               (put_data["product_description"], product_id))
+                conn.commit()
+                response['message'] = "Update was successful"
+                response['status_code'] = 200
+
+        if product_data.get('product_price'):
+            put_data['product_price'] = product_data.get('product_price')
+            with sqlite3.connect('pointOfSale.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE product SET product_price=? WHERE product_id=?", (put_data["product_price"],
+                                                                                         product_id))
+                conn.commit()
+                response['message'] = "Update was successful"
+                response['status_code'] = 200
+
+        return response
+
+    def delete_product(self, product_id):
+        with sqlite3.connect('pointOfSale.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM product WHERE product_id={}'.format(product_id))
+            conn.commit()
+
+
+
 def init_user_table():
     conn = sqlite3.connect('pointOfSale.db')
     print("Opened database successfully")
@@ -60,6 +150,19 @@ def fetch_users():
     return new_data
 
 
+def fetch_products():
+
+
+
+
+
+
+
+
+
+
+
+
 users = fetch_users()
 username_table = {u.username: u for u in users}
 userid_table = {u.id: u for u in users}
@@ -101,27 +204,20 @@ def registration():
             response['status_code'] = 400
             return response
 
-        with sqlite3.connect("pointOfSale.db") as conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO user("
-                           "first_name,"
-                           "last_name,"
-                           "username,"
-                           "password) VALUES(?, ?, ?, ?)", (first_name, last_name, username, password))
-            conn.commit()
+        db = Database()
+        db.registration(first_name, last_name, username, password)
 
         response["message"] = "success"
         response["status_code"] = 201
         return response
 
 
-@app.route('/add-product/', methods=['POST'])
+@app.route('/add-product/<int:user_id>', methods=['POST'])
 @jwt_required()
-def add_product():
+def add_product(user_id):
     response = {}
 
     if request.method == 'POST':
-        user_id = request.form['user_id']
         product_name = request.form['product_name']
         product_category = request.form['product_category']
         product_description = request.form['product_description']
@@ -132,12 +228,8 @@ def add_product():
             response['status_code'] = 400
             return response
 
-        with sqlite3.connect('pointOfSale.db') as conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO product (user_id, product_name, product_category, product_description, "
-                           "product_price) VALUES (?, ?, ?, ?, ?)", (user_id, product_name, product_category,
-                                                                     product_description, product_price))
-            conn.commit()
+        db = Database()
+        db.add_product(user_id, product_name, product_category, product_description, product_price)
 
         response['message'] = "Product entered successfully"
         response['status_code'] = 200
@@ -146,16 +238,12 @@ def add_product():
 
 
 @app.route('/show-products/')
-def get_products():
+def fetch_products():
     response = {}
 
-    with sqlite3.connect('pointOfSale.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM product")
-        products = cursor.fetchall()
-        print(products)
+    db = Database()
 
-    response['products'] = products
+    response['products'] = db.get_products()
     response['message'] = 'Products retrieved successfully'
     response['status_code'] = 200
 
@@ -166,10 +254,8 @@ def get_products():
 def view_product(product_id):
     response = {}
 
-    with sqlite3.connect('pointOfSale.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM product WHERE product_id={}'.format(product_id))
-        product = cursor.fetchone()
+    db = Database()
+    product = db.view_product(product_id)
 
     response['message'] = 'Successfully retrieved product info'
     response['status_code'] = 200
@@ -181,56 +267,12 @@ def view_product(product_id):
 @app.route('/edit-product/<int:product_id>/', methods=['PUT'])
 @jwt_required()
 def edit_product(product_id):
-    response = {}
+    response = None
 
     if request.method == 'PUT':
         incoming_data = dict(request.json)
-        put_data = {}
-
-        if incoming_data.get('product_name'):
-            put_data['product_name'] = incoming_data.get('product_name')
-            with sqlite3.connect('pointOfSale.db') as conn:
-                cursor = conn.cursor()
-                cursor.execute("UPDATE product SET product_name=? WHERE product_id=?", (put_data["product_name"],
-                                                                                        product_id))
-                conn.commit()
-                response['message'] = "Update was successful"
-                response['status_code'] = 200
-
-        if incoming_data.get('product_category'):
-            put_data['product_category'] = incoming_data.get('product_category')
-            with sqlite3.connect('pointOfSale.db') as conn:
-                cursor = conn.cursor()
-                cursor.execute("UPDATE product SET product_category=? WHERE product_id=?",
-                               (put_data["product_category"], product_id))
-                conn.commit()
-                response['message'] = "Update was successful"
-                response['status_code'] = 200
-
-        if incoming_data.get('product_description'):
-            put_data['product_description'] = incoming_data.get('product_description')
-            with sqlite3.connect('pointOfSale.db') as conn:
-                cursor = conn.cursor()
-                cursor.execute("UPDATE product SET product_description=? WHERE product_id=?",
-                               (put_data["product_description"], product_id))
-                conn.commit()
-                response['message'] = "Update was successful"
-                response['status_code'] = 200
-
-        if incoming_data.get('product_price'):
-            if not incoming_data.get('product_price'):
-                response['message'] = 'One or more entries are empty'
-                response['status_code'] = 400
-                return response
-
-            put_data['product_price'] = incoming_data.get('product_price')
-            with sqlite3.connect('pointOfSale.db') as conn:
-                cursor = conn.cursor()
-                cursor.execute("UPDATE product SET product_price=? WHERE product_id=?", (put_data["product_price"],
-                                                                                         product_id))
-                conn.commit()
-                response['message'] = "Update was successful"
-                response['status_code'] = 200
+        db = Database()
+        response = db.edit_product(incoming_data, product_id)
 
     return response
 
@@ -240,13 +282,11 @@ def edit_product(product_id):
 def delete_product(product_id):
     response = {}
 
-    with sqlite3.connect('pointOfSale.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM product WHERE product_id={}'.format(product_id))
-        conn.commit()
+    db = Database()
+    db.delete_product(product_id)
 
-        response['message'] = 'Product deleted successfully'
-        response['status_code'] = 200
+    response['message'] = 'Product deleted successfully'
+    response['status_code'] = 200
 
     return response
 
