@@ -5,6 +5,10 @@ import datetime
 from flask import *
 from flask_jwt import JWT, jwt_required, current_identity
 from flask_cors import CORS
+from flask_mail import Mail, Message
+
+import cloudinary
+import cloudinary.uploader
 
 
 class User(object):
@@ -15,9 +19,10 @@ class User(object):
 
 
 class Product(object):
-    def __init__(self, user_id, product_name, product_category, product_description, product_price):
+    def __init__(self, user_id, product_name, product_image_url, product_category, product_description, product_price):
         self.user_id = user_id
         self.product_name = product_name
+        self.product_image_url = product_image_url
         self.product_category = product_category
         self.product_description = product_description
         self.product_price = product_price
@@ -28,17 +33,27 @@ class Database(object):
         self.conn = sqlite3.connect('pointOfSale.db')
         self.cursor = self.conn.cursor()
 
-    def registration(self, first_name, last_name, username, password):
+    def registration(self, first_name, last_name, email, username, password):
         self.cursor.execute("INSERT INTO user("
                             "first_name,"
                             "last_name,"
+                            "email,"
                             "username,"
-                            "password) VALUES(?, ?, ?, ?)", (first_name, last_name, username, password))
+                            "password) VALUES(?, ?, ?, ?, ?)", (first_name, last_name, email, username, password))
         self.conn.commit()
 
-    def add_product(self, user_id, product_name, product_category, product_description, product_price):
-        self.cursor.execute("INSERT INTO product (user_id, product_name, product_category, product_description, "
-                            "product_price) VALUES (?, ?, ?, ?, ?)", (user_id, product_name, product_category,
+    def add_product(self, user_id, product_name, product_image, product_category, product_description, product_price):
+        cloudinary.config(cloud_name='ddvdj4vy6', api_key='416417923523248',
+                          api_secret='v_bGoSt-EgCYGO2wIkFKRERvqZ0')
+        upload_result = None
+
+        app.logger.info('%s file_to_upload', product_image)
+        if product_image:
+            upload_result = cloudinary.uploader.upload(product_image)
+            app.logger.info(upload_result)
+            # data = jsonify(upload_result)
+        self.cursor.execute("INSERT INTO product (user_id, product_name, product_image_url, product_category, product_description, "
+                            "product_price) VALUES (?, ?, ?, ?, ?, ?)", (user_id, product_name, upload_result['url'], product_category,
                                                                       product_description, product_price))
         self.conn.commit()
 
@@ -111,6 +126,7 @@ def init_user_table():
     conn.execute("CREATE TABLE IF NOT EXISTS user(user_id INTEGER PRIMARY KEY AUTOINCREMENT,"
                  "first_name TEXT NOT NULL,"
                  "last_name TEXT NOT NULL,"
+                 "email TEXT NOT NULL,"
                  "username TEXT NOT NULL,"
                  "password TEXT NOT NULL)")
     print("user table created successfully")
@@ -124,6 +140,7 @@ def init_product_table():
     conn.execute("CREATE TABLE IF NOT EXISTS product(product_id INTEGER PRIMARY KEY AUTOINCREMENT,"
                  "user_id TEXT,"
                  "product_name TEXT NOT NULL,"
+                 "product_image_url TEXT NOT NULL,"
                  "product_category TEXT NOT NULL,"
                  "product_description TEXT NOT NULL,"
                  "product_price TEXT NOT NULL,"
@@ -146,7 +163,7 @@ def fetch_users():
         new_data = []
 
         for data in users:
-            new_data.append(User(data[0], data[3], data[4]))
+            new_data.append(User(data[0], data[4], data[5]))
     return new_data
 
 
@@ -168,8 +185,18 @@ def identity(payload):
 
 app = Flask(__name__)
 app.debug = True
+
 app.config['SECRET_KEY'] = 'super-secret'
 app.config['JWT_EXPIRATION_DELTA'] = datetime.timedelta(hours=24)
+
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'onfroz3@gmail.com'
+app.config['MAIL_PASSWORD'] = 'FwABUqBFLVzt78w#'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
+
 CORS(app)
 
 jwt = JWT(app, authenticate, identity)
@@ -183,16 +210,44 @@ def registration():
 
         first_name = request.form['first_name']
         last_name = request.form['last_name']
+        email = request.form['email']
         username = request.form['username']
         password = request.form['password']
 
-        if not first_name or not last_name or not username or not password:
+        if not first_name or not last_name or not username or not password or not email:
             response['message'] = 'One or more entries are empty'
             response['status_code'] = 400
             return response
 
+        with sqlite3.connect('pointOfSale.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM user WHERE username='{}'".format(username))
+            username_result = cursor.fetchone()
+
+            cursor.execute("SELECT * FROM user WHERE email='{}'".format(email))
+            email_result = cursor.fetchone()
+
+            if username_result:
+                response['message'] = 'Username already exists'
+                response['status_code'] = 400
+                return response
+
+            elif email_result:
+                response['message'] = 'Email already exists'
+                response['status_code'] = 400
+                return response
+
         db = Database()
-        db.registration(first_name, last_name, username, password)
+        db.registration(first_name, last_name, email, username, password)
+
+        msg = Message('OnFroz3 Registration Successful', sender='onfroz3@gmail.com', recipients=[email])
+        msg.body = "Salutations mother's child, \n \n" \
+                   "Welcome to the frozen community! Hope you dressed appropriately. \n " \
+                   "If you have any questions, " \
+                   "feel free to hit us up with an email. \n \n" \
+                   "Stay chilly, \n" \
+                   "OnFroz3 team"
+        mail.send(msg)
 
         response["message"] = "success"
         response["status_code"] = 201
@@ -205,23 +260,32 @@ def add_product(user_id):
     response = {}
 
     if request.method == 'POST':
-        product_name = request.form['product_name']
-        product_category = request.form['product_category']
-        product_description = request.form['product_description']
-        product_price = request.form['product_price']
+        try:
+            product_name = request.form['product_name']
+            product_image = request.files['product_image']
+            product_category = request.form['product_category']
+            product_description = request.form['product_description']
+            product_price = request.form['product_price']
 
-        if not product_name or not product_category or not product_description or not product_price:
-            response['message'] = 'One or more entries are empty'
-            response['status_code'] = 400
+            if not product_name or not product_category or not product_description or not product_price:
+                response['message'] = 'One or more entries are empty'
+                response['status_code'] = 400
+                return response
+
+            int(product_price)
+            db = Database()
+            db.add_product(user_id, product_name, product_image, product_category, product_description, product_price)
+
+            response['message'] = "Product entered successfully"
+            response['status_code'] = 200
+
             return response
 
-        db = Database()
-        db.add_product(user_id, product_name, product_category, product_description, product_price)
+        except ValueError:
+            response['message'] = "Price must be integer"
+            response['status_code'] = 400
 
-        response['message'] = "Product entered successfully"
-        response['status_code'] = 200
-
-        return response
+            return response
 
 
 @app.route('/show-products/')
