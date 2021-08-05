@@ -150,19 +150,6 @@ def fetch_users():
     return new_data
 
 
-def fetch_products():
-
-
-
-
-
-
-
-
-
-
-
-
 users = fetch_users()
 username_table = {u.username: u for u in users}
 userid_table = {u.id: u for u in users}
