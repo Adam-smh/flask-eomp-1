@@ -241,7 +241,7 @@ def registration():
             response['status_code'] = 400
             return response
 
-        elif not validate_email.validate_email('terblancheronald@gmail.com', verify=True):
+        elif not validate_email.validate_email(email, verify=True):
             response['message'] = 'Email not valid'
             response['status_code'] = 401
             return response
