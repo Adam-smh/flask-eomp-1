@@ -12,12 +12,14 @@ import cloudinary.uploader
 import DNS
 import validate_email
 
+
 # User class
 class User(object):
     def __init__(self, id, username, password):
         self.id = id
         self.username = username
         self.password = password
+
 
 # Product class
 class Product(object):
@@ -59,9 +61,10 @@ class Database(object):
             upload_result = cloudinary.uploader.upload(product_image)   # Upload results
             app.logger.info(upload_result)
             # data = jsonify(upload_result)
-        self.cursor.execute("INSERT INTO product (user_id, product_name, product_image_url, product_category, product_description, "
-                            "product_price) VALUES (?, ?, ?, ?, ?, ?)", (user_id, product_name, upload_result['url'], product_category,
-                                                                      product_description, product_price))
+        self.cursor.execute("INSERT INTO product (user_id, product_name, product_image_url, product_category, "
+                            "product_description, product_price) VALUES (?, ?, ?, ?, ?, ?)",
+                            (user_id, product_name, upload_result['url'], product_category, product_description,
+                             product_price))
 
         self.conn.commit()
 
@@ -91,6 +94,7 @@ class Database(object):
                 response['message'] = "Update was successful"
                 response['status_code'] = 200
 
+        #
         if product_data.get('product_category'):
             put_data['product_category'] = product_data.get('product_category')
             with sqlite3.connect('pointOfSale.db') as conn:
@@ -198,6 +202,7 @@ def identity(payload):
     user_id = payload['identity']
     return userid_table.get(user_id, None)
 
+
 # Initialise app
 app = Flask(__name__)
 app.debug = True
@@ -206,10 +211,10 @@ app.config['SECRET_KEY'] = 'super-secret'
 app.config['JWT_EXPIRATION_DELTA'] = datetime.timedelta(hours=24)   # Extending token expiration
 
 # Mail config
-app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_SERVER']= "smtp.gmail.com"
 app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'onfroz3@gmail.com'
-app.config['MAIL_PASSWORD'] = 'FwABUqBFLVzt78w#'
+app.config['MAIL_USERNAME'] = "onfroz3@gmail.com"
+app.config['MAIL_PASSWORD'] = "FwABUqBFLVzt78w#"
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 
