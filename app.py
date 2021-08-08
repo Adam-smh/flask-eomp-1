@@ -302,12 +302,16 @@ def add_product(user_id):
             product_description = request.form['product_description']
             product_price = request.form['product_price']
 
+            # check if variables empty
             if not product_name or not product_category or not product_description or not product_price:
                 response['message'] = 'One or more entries are empty'
                 response['status_code'] = 400
                 return response
 
+            # check if price is a number
             int(product_price)
+
+            # add product to database
             db = Database()
             db.add_product(user_id, product_name, product_image, product_category, product_description, product_price)
 
@@ -329,7 +333,7 @@ def fetch_products():
 
     db = Database()
 
-    response['products'] = db.get_products()
+    response['products'] = db.get_products()  # fetch products
     response['message'] = 'Products retrieved successfully'
     response['status_code'] = 200
 
@@ -341,7 +345,7 @@ def view_product(product_id):
     response = {}
 
     db = Database()
-    product = db.view_product(product_id)
+    product = db.view_product(product_id)   # fetch specific product with product id
 
     response['message'] = 'Successfully retrieved product info'
     response['status_code'] = 200
