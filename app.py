@@ -380,14 +380,6 @@ def delete_product(product_id):
 
     return response
 
-@app.route('/view-users/')
-def view_users():
-    with sqlite3.connect('pointOfSale.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute('select * from user')
-        return cursor.fetchall()
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
