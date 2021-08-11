@@ -221,9 +221,9 @@ app.config['MAIL_USE_SSL'] = True
 # mail instantiation
 mail = Mail(app)
 
-CORS(app)
-
 jwt = JWT(app, authenticate, identity)
+
+CORS(app)
 
 @app.route('/protected')
 @jwt_required()
