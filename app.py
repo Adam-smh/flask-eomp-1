@@ -2,7 +2,7 @@ import hmac
 import sqlite3
 import datetime
 
-from flask import *
+from flask import Flask, request
 from flask_jwt import JWT, jwt_required, current_identity
 from flask_cors import CORS
 from flask_mail import Mail, Message
@@ -221,7 +221,11 @@ app.config['MAIL_USE_SSL'] = True
 # mail instantiation
 mail = Mail(app)
 
-CORS(app)
+
+api_v1_cors_config = {
+  "origins": ["http://localhost:5500"]
+}
+CORS(app, resources={"/api/v1/*": api_v1_cors_config})
 
 jwt = JWT(app, authenticate, identity)
 
