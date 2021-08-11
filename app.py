@@ -221,11 +221,7 @@ app.config['MAIL_USE_SSL'] = True
 # mail instantiation
 mail = Mail(app)
 
-
-api_v1_cors_config = {
-  "origins": ["http://localhost:5500/index.html"]
-}
-CORS(app, resources={"/api/v1/*": api_v1_cors_config})
+CORS(app)
 
 jwt = JWT(app, authenticate, identity)
 
