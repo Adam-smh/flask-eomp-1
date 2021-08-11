@@ -238,11 +238,11 @@ def registration():
     if request.method == "POST":
 
         # fetch form info
-        first_name = request.json['first_name']
-        last_name = request.json['last_name']
-        email = request.json['email']
-        username = request.json['username']
-        password = request.json['password']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        email = request.form['email']
+        username = request.form['username']
+        password = request.form['password']
 
         # Check if form info not empty
         if not first_name or not last_name or not username or not password or not email:
