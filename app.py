@@ -225,6 +225,10 @@ CORS(app)
 
 jwt = JWT(app, authenticate, identity)
 
+@app.route('/protected')
+@jwt_required()
+def protected():
+    return '%s' % current_identity
 
 # Registration route
 @app.route('/register/', methods=['POST'])
