@@ -186,19 +186,17 @@ def fetch_users():
     return new_data
 
 
-# fetching users and putting the results in a dict
-users = fetch_users()
-username_table = {u.username: u for u in users}
-userid_table = {u.id: u for u in users}
-
-
 def authenticate(username, password):
+    users = fetch_users()
+    username_table = {u.username: u for u in users}
     user = username_table.get(username, None)
     if user and hmac.compare_digest(user.password.encode('utf-8'), password.encode('utf-8')):
         return user
 
 
 def identity(payload):
+    users = fetch_users()
+    userid_table = {u.id: u for u in users}
     user_id = payload['identity']
     return userid_table.get(user_id, None)
 
@@ -276,6 +274,11 @@ def registration():
 
         db = Database()
         db.registration(first_name, last_name, email, username, password)
+
+        # update
+        users = fetch_users()
+        username_table = {u.username: u for u in users}
+        userid_table = {u.id: u for u in users}
 
         # Send email
         msg = Message('OnFroz3 Registration Successful', sender='onfroz3@gmail.com', recipients=[email])
@@ -387,3 +390,10 @@ def delete_product(product_id):
 
 if __name__ == '__main__':
     app.run()
+users = {"username": 'wow'}
+
+def update():
+    global users
+    users.username = 'whoa'
+
+print(users)
