@@ -295,6 +295,21 @@ def registration():
         return response
 
 
+@app.route('/get-user/<username>')
+def get_user(username):
+    response = {}
+
+    with sqlite3.connect('pointOfSale.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM user where username={}'.format(username))
+
+        response['status_code'] = 200
+        response['message'] = 'User retrieved successfully'
+        response['user'] = cursor.fetchone()
+
+    return response
+
+
 @app.route('/add-product/<int:user_id>', methods=['POST'])
 @jwt_required()
 def add_product(user_id):
