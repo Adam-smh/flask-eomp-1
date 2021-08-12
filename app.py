@@ -294,7 +294,6 @@ def registration():
         response["status_code"] = 201
         return response
 
-
 @app.route('/get-user/<str:username>/')
 def get_user(username):
     response = {}
@@ -310,6 +309,8 @@ def get_user(username):
     return response
 
 
+=======
+>>>>>>> parent of bbbdad0 (add get user route)
 @app.route('/add-product/<int:user_id>', methods=['POST'])
 @jwt_required()
 def add_product(user_id):
