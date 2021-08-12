@@ -295,7 +295,7 @@ def registration():
         return response
 
 
-@app.route('/get-user/<username>')
+@app.route('/get-user/<str:username>/')
 def get_user(username):
     response = {}
 
@@ -318,11 +318,11 @@ def add_product(user_id):
     if request.method == 'POST':
         try:
             # fetch form data
-            product_name = request.form['product_name']
-            product_image = request.files['product_image']
-            product_category = request.form['product_category']
-            product_description = request.form['product_description']
-            product_price = request.form['product_price']
+            product_name = request.json['product_name']
+            product_image = request.json['product_image']
+            product_category = request.json['product_category']
+            product_description = request.json['product_description']
+            product_price = request.json['product_price']
 
             # check if variables empty
             if not product_name or not product_category or not product_description or not product_price:
@@ -350,6 +350,7 @@ def add_product(user_id):
 
 
 @app.route('/show-products/')
+@jwt_required()
 def fetch_products():
     response = {}
 
