@@ -294,7 +294,7 @@ def registration():
         response["status_code"] = 201
         return response
 
-@app.route('/get-user/<str:username>/')
+@app.route('/get-user/<username>/')
 def get_user(username):
     response = {}
 
