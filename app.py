@@ -367,7 +367,7 @@ def get_user(username):
     return response
 
 
-@app.route('/edit-profile/<int:user_id>')
+@app.route('/edit-profile/<int:user_id>', methods=['PUT'])
 @jwt_required()
 def edit_profile(user_id):
     response = None
