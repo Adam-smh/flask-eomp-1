@@ -127,6 +127,63 @@ class Database(object):
 
         return response
 
+    def edit_profile(self, user_data, user_id):
+        response = {}
+        put_data = {}
+
+        # if statements are to check if data received is not empty
+        if user_data.get('first_name'):
+            put_data['first_name'] = user_data.get('first_name')
+            with sqlite3.connect('pointOfSale.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE user SET first_name=? WHERE user_id=?", (put_data["first_name"],
+                                                                                        user_id))
+                conn.commit()
+                response['message'] = "Update was successful"
+                response['status_code'] = 200
+
+        if user_data.get('last_name'):
+            put_data['last_name'] = user_data.get('last_name')
+            with sqlite3.connect('pointOfSale.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE user SET last_name=? WHERE user_id=?",
+                               (put_data["last_name"], user_id))
+                conn.commit()
+                response['message'] = "Update was successful"
+                response['status_code'] = 200
+
+        if user_data.get('email'):
+            put_data['email'] = user_data.get('email')
+            with sqlite3.connect('pointOfSale.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE user SET email=? WHERE user_id=?",
+                               (put_data["email"], user_id))
+                conn.commit()
+                response['message'] = "Update was successful"
+                response['status_code'] = 200
+
+        if user_data.get('username'):
+            put_data['username'] = user_data.get('username')
+            with sqlite3.connect('pointOfSale.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE user SET username=? WHERE user_id=?", (put_data["username"],
+                                                                                         user_id))
+                conn.commit()
+                response['message'] = "Update was successful"
+                response['status_code'] = 200
+
+        if user_data.get('password'):
+            put_data['password'] = user_data.get('password')
+            with sqlite3.connect('pointOfSale.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE user SET password=? WHERE user_id=?", (put_data["password"],
+                                                                                         user_id))
+                conn.commit()
+                response['message'] = "Update was successful"
+                response['status_code'] = 200
+
+        return response
+
     # Delete product
     def delete_product(self, product_id):
         with sqlite3.connect('pointOfSale.db') as conn:
@@ -295,6 +352,7 @@ def registration():
         return response
 
 @app.route('/get-user/<username>/')
+@jwt_required()
 def get_user(username):
     response = {}
 
@@ -305,6 +363,19 @@ def get_user(username):
         response['status_code'] = 200
         response['message'] = 'User retrieved successfully'
         response['user'] = cursor.fetchone()
+
+    return response
+
+
+@app.route('/edit-profile/<int:user_id>')
+@jwt_required()
+def edit_profile(user_id):
+    response = None
+
+    if request.method == 'PUT':
+        incoming_data = dict(request.json)
+        db = Database()
+        response = db.edit_profile(incoming_data, user_id)
 
     return response
 
