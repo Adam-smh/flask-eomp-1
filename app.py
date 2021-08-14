@@ -377,7 +377,7 @@ def edit_profile(user_id):
         db = Database()
         response = db.edit_profile(incoming_data, user_id)
 
-    return response
+        return response
 
 
 @app.route('/add-product/<int:user_id>', methods=['POST'])
