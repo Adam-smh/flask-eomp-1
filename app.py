@@ -136,8 +136,7 @@ class Database(object):
             put_data['first_name'] = user_data.get('first_name')
             with sqlite3.connect('pointOfSale.db') as conn:
                 cursor = conn.cursor()
-                cursor.execute("UPDATE user SET first_name=? WHERE user_id=?", (put_data["first_name"],
-                                                                                        user_id))
+                cursor.execute("UPDATE user SET first_name=? WHERE user_id=?", (put_data["first_name"],user_id))
                 conn.commit()
                 response['message'] = "Update was successful"
                 response['status_code'] = 200
@@ -166,8 +165,7 @@ class Database(object):
             put_data['username'] = user_data.get('username')
             with sqlite3.connect('pointOfSale.db') as conn:
                 cursor = conn.cursor()
-                cursor.execute("UPDATE user SET username=? WHERE user_id=?", (put_data["username"],
-                                                                                         user_id))
+                cursor.execute("UPDATE user SET username=? WHERE user_id=?", (put_data["username"],user_id))
                 conn.commit()
                 response['message'] = "Update was successful"
                 response['status_code'] = 200
@@ -176,8 +174,7 @@ class Database(object):
             put_data['password'] = user_data.get('password')
             with sqlite3.connect('pointOfSale.db') as conn:
                 cursor = conn.cursor()
-                cursor.execute("UPDATE user SET password=? WHERE user_id=?", (put_data["password"],
-                                                                                         user_id))
+                cursor.execute("UPDATE user SET password=? WHERE user_id=?", (put_data["password"],user_id))
                 conn.commit()
                 response['message'] = "Update was successful"
                 response['status_code'] = 200
@@ -266,7 +263,7 @@ app.config['SECRET_KEY'] = 'super-secret'
 app.config['JWT_EXPIRATION_DELTA'] = datetime.timedelta(hours=24)   # Extending token expiration
 
 # Mail config
-app.config['MAIL_SERVER']= "smtp.gmail.com"
+app.config['MAIL_SERVER'] = "smtp.gmail.com"
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USERNAME'] = "onfroz3@gmail.com"
 app.config['MAIL_PASSWORD'] = "FwABUqBFLVzt78w#"
@@ -350,6 +347,7 @@ def registration():
         response["message"] = "success"
         response["status_code"] = 201
         return response
+
 
 @app.route('/get-user/<username>/')
 @jwt_required()
@@ -490,10 +488,3 @@ def delete_product(product_id):
 
 if __name__ == '__main__':
     app.run()
-users = {"username": 'wow'}
-
-def update():
-    global users
-    users.username = 'whoa'
-
-print(users)
