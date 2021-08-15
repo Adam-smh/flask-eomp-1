@@ -486,5 +486,23 @@ def delete_product(product_id):
     return response
 
 
+@app.route('/delete-user/<int:user_id>/')
+@jwt_required()
+def delete_user_products(user_id):
+    response = {}
+
+    with sqlite3.connect('pointOfSale.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE from user WHERE user_id='{}'".format(user_id))
+        conn.commit()
+
+        cursor.execute("DELETE from user WHERE user_id='{}'".format(user_id))
+        conn.commit()
+
+        response['status_code'] = 200
+        response['message'] = 'User deleted successfully'
+
+    return response
+
 if __name__ == '__main__':
     app.run()
