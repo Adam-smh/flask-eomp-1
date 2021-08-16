@@ -265,8 +265,8 @@ app.config['JWT_EXPIRATION_DELTA'] = datetime.timedelta(hours=24)   # Extending 
 # Mail config
 app.config['MAIL_SERVER'] = "smtp.gmail.com"
 app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = "onfroz3@gmail.com"
-app.config['MAIL_PASSWORD'] = "FwABUqBFLVzt78w#"
+app.config['MAIL_USERNAME'] = "adamafrica.dev@gmail.com"
+app.config['MAIL_PASSWORD'] = "TaxiDriver8"
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 
